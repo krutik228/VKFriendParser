@@ -156,8 +156,8 @@ def report(list_of_dicts, fields, format='csv', directory=os.path.abspath(os.cur
             writer.writerow(row)
 
 def fields_to_list(lst):
-    """Преобразование списка с вложенными полями к
-    списку без вложенных полей
+    """Преобразование списка с вложенными полями (кортежи) к
+    обычному списку
 
 
     :param: lst: список с кортежами
