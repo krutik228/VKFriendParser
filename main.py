@@ -17,7 +17,7 @@ class VKFriendParser(object):
 
         :param: token: токен пользователя для авторизации
         :param: user_id: id пользователя, по которому будет парсинг
-        :param: fields: поля по которым будет парсинг
+        :param: fields: поля по которым будет парсинг, преобразованный в обычный список
         path_to_file: путь к переменным для полей country, city
 
         так как поля country, city, education и т.д. имеют вложенные словари
@@ -32,11 +32,28 @@ class VKFriendParser(object):
 
         self.token = token
         self.user_id = user_id
-        self.fields = fields
+        self.fields = fields_to_list(fields)
 
-        self.path_to_fields = {'country': 'title', 'city': 'title'}
+        self.path_to_fields = self.getting_the_path(fields)
 
         self.vkapi = self.auth()
+
+
+    def getting_the_path(self, lst):
+        """Получение пути для вложенных полей
+
+        :param: lst: список полей или кортежей с полями
+        :return: dict: возвращает словарь с путями к полям
+
+
+        """
+        new_dct = {}
+        for x in lst:
+            if len(x) == 2:
+                new_dct.update({x[0]: x[1]})
+        return new_dct
+
+
 
     def auth(self):
         """Авторизация пользователя через токен с указанием версии API
@@ -91,13 +108,13 @@ class VKFriendParser(object):
         for dct in lst:  # для каждого словаря в списке
             for kv in list(dct):  # для каждой пары в словаре
                 # используется копия, так как изменение словаря во время его перебора вызовет ошибку
-                if kv not in fields:  # если ключ не в списке необходимых данных fields
+                if kv not in self.fields:  # если ключ не в списке необходимых данных fields
                     dct.pop(kv)  # то удаляем пару
                 else:
                     if kv in self.path_to_fields:  # если ключ находится в списке с вложенными данными
                         #  то вытаскиваем вложенные данные через ключ, заменяя вложенный словарь полученным значением
                         dct.update({kv: dct[kv][self.path_to_fields[kv]]})
-            for field in fields:  # расстановка 'Null' значений, если параметр указан для парсинга, но
+            for field in self.fields:  # расстановка 'Null' значений, если параметр указан для парсинга, но
                 # отсутствует у друга
                 if field not in dct.keys():
                     dct.update({field: 'Null'})
@@ -138,6 +155,26 @@ def report(list_of_dicts, fields, format='csv', directory=os.path.abspath(os.cur
         for row in list_of_dicts:  # записать строки
             writer.writerow(row)
 
+def fields_to_list(lst):
+    """Преобразование списка с вложенными полями к
+    списку без вложенных полей
+
+
+    :param: lst: список с кортежами
+
+    :return: lst: список без вложенных полей
+
+
+    """
+
+    new_lst = []
+    for x in lst:
+        if len(x) == 2:
+            new_lst.append(x[0])
+        else:
+            new_lst.append(x)
+    return new_lst
+
 
 def to_isoformat(data):
     """Переход даты формата %d.%m.%y к формату yyyy-mm-dd
@@ -156,7 +193,7 @@ def to_isoformat(data):
                 data[i] = '0' + data[i]  # так как дата рождения полученная
                 # через vkapi может иметь вид 1.6.1999, добавим '0' там, где его не хватает
         if len(data) > 2:
-            return f'{data[2]}-{data[1]}-{data[0]}'  # если есть и день, месяц и год рождения
+            return f'{data[2]}-{data[1]}-{data[0]}'  # если есть день, месяц и год рождения
         else:
             return f'{data[1]}-{data[0]}'  # если нет года рождения
     else:
@@ -164,11 +201,15 @@ def to_isoformat(data):
 
 
 if __name__ == '__main__':
-    fields = ['first_name', 'last_name', 'country', 'city', 'bdate', 'sex']
+    fields = ['first_name', 'last_name', ('country', 'title'), ('city', 'title'), 'bdate', 'sex']
+    columns = fields_to_list(fields)
     parser = VKFriendParser(token, user_id, fields)
     data = parser.get_friends_data()
     print(data)
-    report(data, fields=fields, format='csv')
-    report(data, fields=fields, format='json')
-    report(data, fields=fields, format='tsv')
-    report(data, fields=fields, format='yaml')
+    report(data, fields=columns, format='csv')
+    report(data, fields=columns, format='json')
+    report(data, fields=columns, format='tsv')
+    report(data, fields=columns, format='yaml')
+
+
+
