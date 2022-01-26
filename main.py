@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
 import csv
+from datetime import datetime
 import os
 import json
 
@@ -98,14 +99,13 @@ class VKFriendParser(object):
 
         lst: список полученных 'сырых' данных
 
-        :return: list: [({'first_name': str, ...}, {...}, ...)]
+        :return list: [({'first_name': str, ...}, {...}, ...)]
         изменённый список без лишних данных
 
 
         """
 
         lst = self.__raw_friends_data()  # получение списка со словарями
-        print(lst, '\n\n\n')
         for dct in lst:  # для каждого словаря в списке
             for kv in list(dct):  # для каждой пары в словаре
                 # используется копия, так как изменение словаря во время его перебора вызовет ошибку
@@ -125,7 +125,7 @@ class VKFriendParser(object):
 
 
 def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abspath(os.curdir),
-           name='report'):
+           name='report', encoding="cp1251"):
     """Составление отчёта в указанном формате
 
     :param list list_of_dicts: список со словарями для импорта
@@ -133,6 +133,7 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
     :param str report_format: формат сохранения данных
     :param str directory: путь сохранения отчёта, по умолчанию текущая директория
     :param str name: имя файла
+    :param str encoding: кодировка файла
 
     По умолчанию отчёт сохраняется в формате '.csv' в текущем каталоге,
     при изменении поля format изменится формат сохранения отчёта
@@ -148,7 +149,7 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
 
     if report_format == 'csv':
 
-        with open(full_path, 'w', newline='', encoding="cp1251") as file:  # сохранение файла
+        with open(full_path, 'w', newline='', encoding=encoding) as file:  # сохранение файла
             # в кодировке 'cp1251'
             writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=',')  # за названия столбцом примем поля
             # для парсинга fields
@@ -157,9 +158,17 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
                 writer.writerow(row)
 
     elif report_format == 'json':
-        with open(full_path, 'w', newline='', encoding="cp1251") as json_file:
+        with open(full_path, 'w', newline='', encoding=encoding) as json_file:
             json.dump(list_of_dicts, json_file, ensure_ascii=False)
 
+    elif report_format == 'tsv':
+        with open(full_path, 'w', newline='', encoding=encoding) as file:  # сохранение файла
+            # в кодировке 'cp1251'
+            writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter='\t')  # за названия столбцом примем поля
+            # для парсинга fields
+            writer.writeheader()  # составить столбцы
+            for row in list_of_dicts:  # записать строки
+                writer.writerow(row)
 
 
 def fields_to_list(lst):
@@ -185,28 +194,26 @@ def fields_to_list(lst):
     return new_lst
 
 
-def to_isoformat(data):
+def to_isoformat(date):
     """Переход даты формата %d.%m.%y к формату yyyy-mm-dd
 
-    :param str data: строка с датой формата %d.%m.%y
+    :param str date: строка с датой формата %d.%m.%y
 
 
     :return str: формат даты yyyy-mm-dd
 
 
     """
-    if data != 'Null':  # вернуть 'Null' если дата рождения отсутствует
-        data = data.split('.')
-        for i in range(len(data)):
-            if len(data[i]) < 2:
-                data[i] = '0' + data[i]  # так как дата рождения полученная
-                # через vkapi может иметь вид 1.6.1999, добавим '0' там, где его не хватает
-        if len(data) > 2:
-            return f'{data[2]}-{data[1]}-{data[0]}'  # если есть день, месяц и год рождения
-        else:
-            return f'{data[1]}-{data[0]}'  # если нет года рождения
+    if date == 'Null':
+        return date
+    elif len(date.split('.')) == 3:
+        print(date)
+        t = datetime.strptime(date, "%d.%m.%Y").isoformat()[:10]
+        print(t)
+        return datetime.strptime(date, "%d.%m.%Y").isoformat()[:10]
     else:
-        return 'Null'
+        print(date)
+        return datetime.strptime(date, "%d.%m").isoformat()[5:10]
 
 
 if __name__ == '__main__':
@@ -219,5 +226,3 @@ if __name__ == '__main__':
     report(data_friends, fieldnames=columns, report_format='json')
     report(data_friends, fieldnames=columns, report_format='tsv')
     report(data_friends, fieldnames=columns, report_format='yaml')
-
-
