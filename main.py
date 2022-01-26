@@ -207,5 +207,5 @@ if __name__ == '__main__':
     report(data_friends, fieldnames=columns, report_format='csv')
     report(data_friends, fieldnames=columns, report_format='json')
     report(data_friends, fieldnames=columns, report_format='tsv')
-    report(data_friends, fieldnames=columns, report_format='yaml')
+    report(data_friends, fieldnames=columns, report_format='yml')
 
