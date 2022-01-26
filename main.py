@@ -1,13 +1,13 @@
 # -*- coding: utf8 -*-
 
 import csv
-from datetime import datetime
 import os
 import json
 
 import vk
 
 from config import token, user_id
+from datetime import datetime
 
 
 class VKFriendParser(object):
@@ -145,7 +145,7 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
 
     """
 
-    full_path = os.path.join(directory, fr'{directory}\{name}.{report_format}')  # объединение имени файла и директории
+    full_path = os.path.join(directory, fr'{name}.{report_format}')  # объединение имени файла и директории
 
     if report_format == 'csv':
 
@@ -163,7 +163,6 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
 
     elif report_format == 'tsv':
         with open(full_path, 'w', newline='', encoding=encoding) as file:  # сохранение файла
-            # в кодировке 'cp1251'
             writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter='\t')  # за названия столбцом примем поля
             # для парсинга fields
             writer.writeheader()  # составить столбцы
@@ -207,12 +206,8 @@ def to_isoformat(date):
     if date == 'Null':
         return date
     elif len(date.split('.')) == 3:
-        print(date)
-        t = datetime.strptime(date, "%d.%m.%Y").isoformat()[:10]
-        print(t)
         return datetime.strptime(date, "%d.%m.%Y").isoformat()[:10]
     else:
-        print(date)
         return datetime.strptime(date, "%d.%m").isoformat()[5:10]
 
 
@@ -220,9 +215,8 @@ if __name__ == '__main__':
     fields = ['first_name', 'last_name', ('country', 'title'), ('city', 'title'), 'bdate', 'sex']
     parser = VKFriendParser(token, user_id, fields)  # парсер
     data_friends = parser.get_friends_data()  # данные друзей
-    print(data_friends)
+    # print(data_friends)
     columns = fields_to_list(fields)  # преобразование списка полей к списку для формирования названий колонок отчёта
-    report(data_friends, fieldnames=columns, report_format='csv')
-    report(data_friends, fieldnames=columns, report_format='json')
-    report(data_friends, fieldnames=columns, report_format='tsv')
-    report(data_friends, fieldnames=columns, report_format='yaml')
+    report(data_friends, fieldnames=columns, report_format='csv', encoding='cp1251', directory=fr'C:\Users\nikkr\Desktop')
+    # report(data_friends, fieldnames=columns, report_format='json', encoding='cp1251')
+    # report(data_friends, fieldnames=columns, report_format='tsv', encoding='cp1251')

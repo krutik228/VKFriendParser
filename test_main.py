@@ -39,7 +39,6 @@ class TestVKFriendParser(unittest.TestCase):
         new_list = fields_to_list(test_list)
         self.assertEquals(new_list, ['1', '2', '3', '5'])
 
-
     def tearDown(self) -> None:
         pass
 
