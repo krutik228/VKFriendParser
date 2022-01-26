@@ -6,13 +6,9 @@ __pycache__/
 report.*
 
 *.csv
-
 *.json
-
 *.tsv
-
 *.yml
 
 .idea
-
 venv

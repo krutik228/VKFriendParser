@@ -2,6 +2,7 @@
 
 import csv
 import os
+import json
 
 import vk
 
@@ -104,6 +105,7 @@ class VKFriendParser(object):
         """
 
         lst = self.__raw_friends_data()  # получение списка со словарями
+        print(lst, '\n\n\n')
         for dct in lst:  # для каждого словаря в списке
             for kv in list(dct):  # для каждой пары в словаре
                 # используется копия, так как изменение словаря во время его перебора вызовет ошибку
@@ -142,15 +144,22 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
 
     """
 
-    FullPath = os.path.join(directory, fr'{directory}\{name}.{report_format}')  # объединение имени файла и директории
+    full_path = os.path.join(directory, fr'{directory}\{name}.{report_format}')  # объединение имени файла и директории
 
-    with open(FullPath, 'w', newline='', encoding="cp1251") as file:  # сохранение файла
-        # в кодировке 'cp1251'
-        writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=',')  # за названия столбцом примем поля
-        # для парсинга fields
-        writer.writeheader()  # составить столбцы
-        for row in list_of_dicts:  # записать строки
-            writer.writerow(row)
+    if report_format == 'csv':
+
+        with open(full_path, 'w', newline='', encoding="cp1251") as file:  # сохранение файла
+            # в кодировке 'cp1251'
+            writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=',')  # за названия столбцом примем поля
+            # для парсинга fields
+            writer.writeheader()  # составить столбцы
+            for row in list_of_dicts:  # записать строки
+                writer.writerow(row)
+
+    elif report_format == 'json':
+        with open(full_path, 'w', newline='', encoding="cp1251") as json_file:
+            json.dump(list_of_dicts, json_file, ensure_ascii=False)
+
 
 
 def fields_to_list(lst):
@@ -167,10 +176,12 @@ def fields_to_list(lst):
 
     new_lst = []
     for x in lst:
-        if len(x) > 1:
+        if type(x) == tuple:
             new_lst.append(x[0])
-        else:
+        elif type(x) == str:
             new_lst.append(x)
+        else:
+            raise ValueError("Неверный формат ввода")
     return new_lst
 
 
@@ -207,5 +218,6 @@ if __name__ == '__main__':
     report(data_friends, fieldnames=columns, report_format='csv')
     report(data_friends, fieldnames=columns, report_format='json')
     report(data_friends, fieldnames=columns, report_format='tsv')
-    report(data_friends, fieldnames=columns, report_format='yml')
+    report(data_friends, fieldnames=columns, report_format='yaml')
+
 
