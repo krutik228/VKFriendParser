@@ -9,10 +9,10 @@ from config import token, user_id
 
 
 class VKFriendParser(object):
+    """ Класс парсера друзей вконтакте"""
+
     def __init__(self, token, user_id, fields):
-        """Инициализация токена для авторизации, id пользователя,
-        по которому будет совершаться парсинг, поля
-        по которым будет совершаться парсинг
+        """Конструктор класса
 
 
         :param str token: токен пользователя для авторизации
@@ -38,7 +38,6 @@ class VKFriendParser(object):
 
         self.vkapi = self.auth()
 
-
     def getting_the_path(self, lst):
         """Получение путей для вложенных полей
 
@@ -52,8 +51,6 @@ class VKFriendParser(object):
             if len(x) == 2:
                 new_dct.update({x[0]: x[1]})
         return new_dct
-
-
 
     def auth(self):
         """Авторизация пользователя через токен с указанием версии API
@@ -107,7 +104,6 @@ class VKFriendParser(object):
         """
 
         lst = self.__raw_friends_data()  # получение списка со словарями
-        print(lst)
         for dct in lst:  # для каждого словаря в списке
             for kv in list(dct):  # для каждой пары в словаре
                 # используется копия, так как изменение словаря во время его перебора вызовет ошибку
@@ -126,13 +122,15 @@ class VKFriendParser(object):
         return lst
 
 
-def report(list_of_dicts, fields, format='csv', directory=os.path.abspath(os.curdir)):
+def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abspath(os.curdir),
+           name='report'):
     """Составление отчёта в указанном формате
 
     :param list list_of_dicts: список со словарями для импорта
-    :param list fields: список с полями, необходим для правильного порядка колонок
-    :param str format: формат сохранения данных
+    :param list fieldnames: список с полями, необходим для правильного порядка колонок
+    :param str report_format: формат сохранения данных
     :param str directory: путь сохранения отчёта, по умолчанию текущая директория
+    :param str name: имя файла
 
     По умолчанию отчёт сохраняется в формате '.csv' в текущем каталоге,
     при изменении поля format изменится формат сохранения отчёта
@@ -144,15 +142,16 @@ def report(list_of_dicts, fields, format='csv', directory=os.path.abspath(os.cur
 
     """
 
-    FullPath = os.path.join(directory, fr'{directory}\report.{format}')  # объединение имени файла и директории
+    FullPath = os.path.join(directory, fr'{directory}\{name}.{report_format}')  # объединение имени файла и директории
 
     with open(FullPath, 'w', newline='', encoding="cp1251") as file:  # сохранение файла
         # в кодировке 'cp1251'
-        writer = csv.DictWriter(file, fieldnames=fields, delimiter=',')  # за названия столбцом примем поля
+        writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=',')  # за названия столбцом примем поля
         # для парсинга fields
         writer.writeheader()  # составить столбцы
         for row in list_of_dicts:  # записать строки
             writer.writerow(row)
+
 
 def fields_to_list(lst):
     """Преобразование списка с вложенными полями (кортежами) к
@@ -202,13 +201,11 @@ def to_isoformat(data):
 if __name__ == '__main__':
     fields = ['first_name', 'last_name', ('country', 'title'), ('city', 'title'), 'bdate', 'sex']
     parser = VKFriendParser(token, user_id, fields)  # парсер
-    data = parser.get_friends_data()  # данные друзей
-    print(data)
+    data_friends = parser.get_friends_data()  # данные друзей
+    print(data_friends)
     columns = fields_to_list(fields)  # преобразование списка полей к списку для формирования названий колонок отчёта
-    report(data, fields=columns, format='csv')
-    report(data, fields=columns, format='json')
-    report(data, fields=columns, format='tsv')
-    report(data, fields=columns, format='yaml')
-
-
+    report(data_friends, fieldnames=columns, report_format='csv')
+    report(data_friends, fieldnames=columns, report_format='json')
+    report(data_friends, fieldnames=columns, report_format='tsv')
+    report(data_friends, fieldnames=columns, report_format='yaml')
 
