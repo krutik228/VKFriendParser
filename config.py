@@ -1,2 +1,0 @@
-token = '29cfcce335a7b5d0850b1a6db983c8554854064b4ecbe94e4b7959a49e2aff9965b5bbbfcc7d203d2d8e4'
-user_id = '89288074'
