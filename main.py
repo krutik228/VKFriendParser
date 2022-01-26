@@ -15,11 +15,11 @@ class VKFriendParser(object):
         по которым будет совершаться парсинг
 
 
-        :param: token: токен пользователя для авторизации
-        :param: user_id: id пользователя, по которому будет парсинг
-        :param: fields: поля по которым будет парсинг, преобразованный в обычный список
-        path_to_file: путь к переменным для полей country, city
+        :param str token: токен пользователя для авторизации
+        :param str user_id: id пользователя, по которому будет парсинг
+        :param list fields: поля по которым будет парсинг, преобразованный в обычный список
 
+        path_to_file: путь к переменным для полей country, city
         так как поля country, city, education и т.д. имеют вложенные словари
         без возможности их получение через get запрос, то 'доставать' их приходится
         непосредственно после получения, переменная path_to_file хранит путь к названию
@@ -32,18 +32,18 @@ class VKFriendParser(object):
 
         self.token = token
         self.user_id = user_id
-        self.fields = fields_to_list(fields)
+        self.fields = fields_to_list(fields)  # список без кортежей
 
-        self.path_to_fields = self.getting_the_path(fields)
+        self.path_to_fields = self.getting_the_path(fields)  # получение путей к полям
 
         self.vkapi = self.auth()
 
 
     def getting_the_path(self, lst):
-        """Получение пути для вложенных полей
+        """Получение путей для вложенных полей
 
-        :param: lst: список полей или кортежей с полями
-        :return: dict: возвращает словарь с путями к полям
+        :param list lst: список полей или кортежей с полями
+        :return dict: возвращает словарь с путями к полям
 
 
         """
@@ -74,7 +74,7 @@ class VKFriendParser(object):
 
 
         Помимо полей указанных в fields парсер возвращает лишние
-        данные, такие как 'id', 'can_access_closed', 'track_code' и т.д.,
+        данные, такие как 'id', 'can_access_closed', 'track_code' и т.д.
 
 
         На данном этапе происходит авторизация пользователя по токену,
@@ -94,17 +94,20 @@ class VKFriendParser(object):
             print(e)
 
     def get_friends_data(self):
-        """Обработка сырых данных
+        """Получение данных друзей без лишней информации
+
+
 
         lst: список полученных 'сырых' данных
 
-        :return: [({'first_name': str, ...}, {...}, ...)]
+        :return: list: [({'first_name': str, ...}, {...}, ...)]
         изменённый список без лишних данных
 
 
         """
 
         lst = self.__raw_friends_data()  # получение списка со словарями
+        print(lst)
         for dct in lst:  # для каждого словаря в списке
             for kv in list(dct):  # для каждой пары в словаре
                 # используется копия, так как изменение словаря во время его перебора вызовет ошибку
@@ -126,18 +129,14 @@ class VKFriendParser(object):
 def report(list_of_dicts, fields, format='csv', directory=os.path.abspath(os.curdir)):
     """Составление отчёта в указанном формате
 
-    :param: list_of_dicts: список со словарями для импорта
-    :param: fields: список с полями, необходим для правильного порядка колонок
-    :param: format: формат сохранения данных
-    :param: directory: путь сохранения отчёта, по умолчанию текущая директория
+    :param list list_of_dicts: список со словарями для импорта
+    :param list fields: список с полями, необходим для правильного порядка колонок
+    :param str format: формат сохранения данных
+    :param str directory: путь сохранения отчёта, по умолчанию текущая директория
 
     По умолчанию отчёт сохраняется в формате '.csv' в текущем каталоге,
     при изменении поля format изменится формат сохранения отчёта
 
-
-    При сохранения файла в кодировке 'utf-8', может возникнуть ошибка,
-    если у друга в имени или фамилии есть символы, не поддерживаемые
-    форматом консоли, .csv, .json и т.д.
 
 
     :NoReturn:
@@ -156,20 +155,20 @@ def report(list_of_dicts, fields, format='csv', directory=os.path.abspath(os.cur
             writer.writerow(row)
 
 def fields_to_list(lst):
-    """Преобразование списка с вложенными полями (кортежи) к
-    обычному списку
+    """Преобразование списка с вложенными полями (кортежами) к
+    обычному списку, в список сохраняется только первый элемент кортежа
 
 
-    :param: lst: список с кортежами
+    :param list lst: список с кортежами
 
-    :return: lst: список без вложенных полей
+    :return list: список
 
 
     """
 
     new_lst = []
     for x in lst:
-        if len(x) == 2:
+        if len(x) > 1:
             new_lst.append(x[0])
         else:
             new_lst.append(x)
@@ -179,10 +178,10 @@ def fields_to_list(lst):
 def to_isoformat(data):
     """Переход даты формата %d.%m.%y к формату yyyy-mm-dd
 
-    :param: data: строка с даты рождения формата %d.%m.%y
+    :param str data: строка с датой формата %d.%m.%y
 
 
-    :return: str: формат даты yyyy-mm-dd
+    :return str: формат даты yyyy-mm-dd
 
 
     """
@@ -202,10 +201,10 @@ def to_isoformat(data):
 
 if __name__ == '__main__':
     fields = ['first_name', 'last_name', ('country', 'title'), ('city', 'title'), 'bdate', 'sex']
-    columns = fields_to_list(fields)
-    parser = VKFriendParser(token, user_id, fields)
-    data = parser.get_friends_data()
+    parser = VKFriendParser(token, user_id, fields)  # парсер
+    data = parser.get_friends_data()  # данные друзей
     print(data)
+    columns = fields_to_list(fields)  # преобразование списка полей к списку для формирования названий колонок отчёта
     report(data, fields=columns, format='csv')
     report(data, fields=columns, format='json')
     report(data, fields=columns, format='tsv')
