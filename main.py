@@ -1,12 +1,15 @@
 # -*- coding: utf8 -*-
 
+
+import argparse
 import csv
-import os
 import json
+import os
+import sys
 
 import vk
 
-from config import token, user_id
+# from config import token, user_id
 from datetime import datetime
 
 
@@ -156,10 +159,12 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
             writer.writeheader()  # составить столбцы
             for row in list_of_dicts:  # записать строки
                 writer.writerow(row)
+        print('Отчёт экспортирован в формате .csv')
 
     elif report_format == 'json':
         with open(full_path, 'w', newline='', encoding=encoding) as json_file:
             json.dump(list_of_dicts, json_file, ensure_ascii=False)
+        print('Отчёт экспортирован в формате .json')
 
     elif report_format == 'tsv':
         with open(full_path, 'w', newline='', encoding=encoding) as file:  # сохранение файла
@@ -168,6 +173,9 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
             writer.writeheader()  # составить столбцы
             for row in list_of_dicts:  # записать строки
                 writer.writerow(row)
+        print('Отчёт экспортирован в формате .tsv')
+    else:
+        raise ValueError('Неизвестный формат')
 
 
 def fields_to_list(lst):
@@ -212,11 +220,18 @@ def to_isoformat(date):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--token', type=str)
+    parser.add_argument('--user_id', type=str)
+    args = parser.parse_args()
+
+    token, user_id = args.token, args.user_id
     fields = ['first_name', 'last_name', ('country', 'title'), ('city', 'title'), 'bdate', 'sex']
-    parser = VKFriendParser(token, user_id, fields)  # парсер
-    data_friends = parser.get_friends_data()  # данные друзей
-    # print(data_friends)
+
+    vk_friend_parser = VKFriendParser(token, user_id, fields)  # парсер
+    data_friends = vk_friend_parser.get_friends_data()  # данные друзей
+
     columns = fields_to_list(fields)  # преобразование списка полей к списку для формирования названий колонок отчёта
-    report(data_friends, fieldnames=columns, report_format='csv', encoding='cp1251', directory=fr'C:\Users\nikkr\Desktop')
-    # report(data_friends, fieldnames=columns, report_format='json', encoding='cp1251')
-    # report(data_friends, fieldnames=columns, report_format='tsv', encoding='cp1251')
+    report(data_friends, fieldnames=columns, report_format='csv', encoding='cp1251')
+    report(data_friends, fieldnames=columns, report_format='json', encoding='cp1251')
+    report(data_friends, fieldnames=columns, report_format='tsv', encoding='cp1251')
