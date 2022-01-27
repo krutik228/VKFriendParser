@@ -9,7 +9,6 @@ import sys
 
 import vk
 
-# from config import token, user_id
 from datetime import datetime
 
 
