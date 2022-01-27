@@ -220,7 +220,7 @@ def to_isoformat(date):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()  # парсинг аргументов параметров
     parser.add_argument('--token', type=str)
     parser.add_argument('--user_id', type=str)
     args = parser.parse_args()
