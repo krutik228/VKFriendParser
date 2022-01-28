@@ -54,7 +54,12 @@ class VKFriendParser(object):
         for x in lst:
             if type(x) == tuple:
                 new_dct.update({x[0]: x[1]})
+            elif type(x) == str:
+                continue
+            else:
+                raise ValueError("Неверно составлен список полей")
         return new_dct
+        
 
     def auth(self):
         """Авторизация пользователя через токен с указанием версии API
