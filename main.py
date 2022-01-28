@@ -45,20 +45,25 @@ class VKFriendParser(object):
         """Получение путей для вложенных полей
 
         :param list lst: список полей или кортежей с полями
+        :exception ValueError: список составлен неверно
+        :exception ValueError: список пуст
         :return dict: возвращает словарь с путями к полям
 
 
         """
 
         new_dct = {}
-        for x in lst:
-            if type(x) == tuple:
-                new_dct.update({x[0]: x[1]})
-            elif type(x) == str:
-                continue
-            else:
-                raise ValueError("Неверно составлен список полей")
-        return new_dct
+        if lst:
+            for x in lst:
+                if type(x) == tuple:
+                    new_dct.update({x[0]: x[1]})
+                elif type(x) == str:
+                    continue
+                else:
+                    raise ValueError("Неверно составлен список полей")
+            return new_dct
+        else:
+            raise ValueError("Список полей пуст")
 
     def auth(self):
         """Авторизация пользователя через токен с указанием версии API
@@ -88,10 +93,10 @@ class VKFriendParser(object):
         """
 
         try:
-            return self.vkapi('friends.get', user_id=self.user_id,
-                              fields=self.fields, order='name')['items']
-        except Exception as e:
-            print(e)
+            raw_friends_data = self.vkapi('friends.get', user_id=self.user_id, fields=self.fields, order='name')['items']
+            return raw_friends_data
+        except Exception:
+            print("Неверный токен, id пользователя или закрытый аккаунт")
 
     def get_friends_data(self):
         """Получение данных друзей без лишней информации
@@ -223,7 +228,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     token, user_id = args.token, args.user_id
-    fields = ['first_name']
+    fields = ['first_name', 'last_name', ('country', 'title'), ('city', 'title'), 'bdate', 'sex']
 
     vk_friend_parser = VKFriendParser(token, user_id, fields)  # парсер
     data_friends = vk_friend_parser.get_friends_data()  # данные друзей
