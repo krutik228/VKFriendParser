@@ -52,7 +52,7 @@ class VKFriendParser(object):
         """
         new_dct = {}
         for x in lst:
-            if len(x) == 2:
+            if type(x) == tuple:
                 new_dct.update({x[0]: x[1]})
         return new_dct
 
