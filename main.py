@@ -86,6 +86,9 @@ class VKFriendParser(object):
         Помимо полей указанных в fields парсер возвращает лишние
         данные, такие как 'id', 'can_access_closed', 'track_code' и т.д.
 
+        :exception Exception: неверный токен, неверный id или закрытый аккаунт
+
+
         :return list: [({'id':str, 'first_name': str, ...}, {...}, ...)] список
         словарей со всеми данными
 
