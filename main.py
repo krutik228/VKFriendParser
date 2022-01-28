@@ -5,11 +5,9 @@ import argparse
 import csv
 import json
 import os
-import sys
 
 import vk
 
-# from config import token, user_id
 from datetime import datetime
 
 
@@ -51,9 +49,10 @@ class VKFriendParser(object):
 
 
         """
+
         new_dct = {}
         for x in lst:
-            if len(x) == 2:
+            if type(x) == tuple:
                 new_dct.update({x[0]: x[1]})
         return new_dct
 
@@ -78,17 +77,12 @@ class VKFriendParser(object):
         Помимо полей указанных в fields парсер возвращает лишние
         данные, такие как 'id', 'can_access_closed', 'track_code' и т.д.
 
-
-        На данном этапе происходит авторизация пользователя по токену,
-        если токен неверный, ошибка вылетит в этом месте. Также, если
-        аккаунт закрытый или пользователь не имеет друзей, ошибки появятся
-        в это части кода
-
-        :return: [({'id':str, 'first_name': str, ...}, {...}, ...)] список
+        :return list: [({'id':str, 'first_name': str, ...}, {...}, ...)] список
         словарей со всеми данными
 
 
         """
+
         try:
             return self.vkapi('friends.get', user_id=self.user_id,
                               fields=self.fields, order='name')['items']
@@ -140,7 +134,6 @@ def report(list_of_dicts, fieldnames, report_format='csv', directory=os.path.abs
 
     По умолчанию отчёт сохраняется в формате '.csv' в текущем каталоге,
     при изменении поля format изменится формат сохранения отчёта
-
 
 
     :NoReturn:
@@ -226,7 +219,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     token, user_id = args.token, args.user_id
-    fields = ['first_name', 'last_name', ('country', 'title'), ('city', 'title'), 'bdate', 'sex']
+    fields = ['first_name']
 
     vk_friend_parser = VKFriendParser(token, user_id, fields)  # парсер
     data_friends = vk_friend_parser.get_friends_data()  # данные друзей
